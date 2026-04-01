@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pdfplumber
 import re
@@ -18,23 +17,32 @@ def extract_text(file):
 
 
 # -------------------------------
-# Analyze CIBIL data
+# Analyze CIBIL data (FIXED)
 # -------------------------------
 def analyze_cibil(text):
     result = {}
 
-    score_match = re.search(r"\b\d{3}\b", text)
-    result["score"] = int(score_match.group()) if score_match else None
+    text_lower = text.lower()
 
+    # 🔥 FIX 1: Better score detection
+    score_match = re.search(r"(score|cibil)[^0-9]*(\d{3})", text_lower)
+
+    if score_match:
+        result["score"] = int(score_match.group(2))
+    else:
+        result["score"] = None
+
+    # 🔥 FIX 2: Smarter issue detection
     issues = []
 
-    if "late payment" in text.lower():
+    if "late payment" in text_lower:
         issues.append("Late payments found")
 
-    if "utilization" in text.lower() or "credit usage" in text.lower():
+    if "utilization" in text_lower or "%" in text:
         issues.append("High credit utilization")
 
-    if "loan" in text.lower():
+    loan_count = len(re.findall(r"loan", text_lower))
+    if loan_count >= 2:
         issues.append("Multiple loans detected")
 
     result["issues"] = issues
@@ -43,30 +51,38 @@ def analyze_cibil(text):
 
 
 # -------------------------------
-# Rule-based advice
+# Advice (IMPROVED)
 # -------------------------------
 def generate_advice(data):
     advice = []
-
     score = data["score"]
 
     if score:
         if score < 650:
-            advice.append("⚠️ Poor score")
+            advice.append("⚠️ Poor score: Immediate improvement needed")
         elif score < 700:
-            advice.append("⚠️ Needs improvement")
+            advice.append("⚠️ Average score: Needs improvement")
+        elif score < 750:
+            advice.append("🙂 Good score but can improve")
         else:
-            advice.append("✅ Good score")
+            advice.append("🔥 Excellent credit score")
 
-    advice.append("👉 Pay EMIs on time")
-    advice.append("👉 Keep usage below 30%")
-    advice.append("👉 Avoid multiple loans")
+    if "Late payments found" in data["issues"]:
+        advice.append("👉 Pay EMIs and credit bills on time")
+
+    if "High credit utilization" in data["issues"]:
+        advice.append("👉 Keep credit usage below 30%")
+
+    if "Multiple loans detected" in data["issues"]:
+        advice.append("👉 Avoid taking multiple loans")
+
+    advice.append("👉 Monitor your credit score regularly")
 
     return advice
 
 
 # -------------------------------
-# AI Advice (Optional)
+# AI Advice (optional)
 # -------------------------------
 def get_ai_advice(text):
     try:
@@ -102,16 +118,16 @@ if uploaded_file:
         text = extract_text(uploaded_file)
         data = analyze_cibil(text)
 
-        st.subheader("Basic Analysis")
-        st.write("Credit Score:", data["score"])
-        st.write("Issues:", data["issues"] if data["issues"] else "No major issues")
+        st.subheader("📊 Analysis")
+        st.write("**Credit Score:**", data["score"])
+        st.write("**Issues:**", data["issues"] if data["issues"] else "No major issues")
 
         ai = get_ai_advice(text)
 
         if ai:
-            st.subheader("AI Analysis")
+            st.subheader("🤖 AI Analysis")
             st.write(ai)
         else:
-            st.subheader("Basic Advice")
+            st.subheader("💡 Recommendations")
             for tip in generate_advice(data):
                 st.write(tip)
