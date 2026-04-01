@@ -27,7 +27,10 @@ An AI-powered web application that analyzes CIBIL credit reports and provides fi
 
 ## 📸 Screenshots
 
-(Add screenshots here)
+![App Screenshot](![WhatsApp Image 2026-04-01 at 6 54 19 PM (1)](https://github.com/user-attachments/assets/b60c4a23-d25e-4931-ad20-253fb35a5147))
+![App Screenshot](![WhatsApp Image 2026-04-01 at 6 54 19 PM](https://github.com/user-attachments/assets/2d863df6-d0a6-427c-b47d-b969aa7a6084))
+![App Screenshot](![WhatsApp Image 2026-04-01 at 6 54 18 PM](https://github.com/user-attachments/assets/ba34f194-b819-4f80-ae53-7675a911eea6))
+![App Screenshot](![WhatsApp Image 2026-04-01 at 6 54 18 PM (1)](https://github.com/user-attachments/assets/28754a53-e648-481b-ade9-2d31e415fb4e))
 
 ---
 
