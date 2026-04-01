@@ -1,10 +1,15 @@
+# ==========================================
+# AI CIBIL ANALYZER (FINAL PREMIUM VERSION)
+# ==========================================
+
 import streamlit as st
 import pdfplumber
 import re
 import os
+import pandas as pd
 
 # -------------------------------
-# Extract text from PDF
+# Extract text
 # -------------------------------
 def extract_text(file):
     text = ""
@@ -17,14 +22,13 @@ def extract_text(file):
 
 
 # -------------------------------
-# Analyze CIBIL data (FIXED)
+# Analyze data (SMART)
 # -------------------------------
 def analyze_cibil(text):
     result = {}
-
     text_lower = text.lower()
 
-    # 🔥 FIX 1: Better score detection
+    # Score detection (fixed)
     score_match = re.search(r"(score|cibil)[^0-9]*(\d{3})", text_lower)
 
     if score_match:
@@ -32,18 +36,18 @@ def analyze_cibil(text):
     else:
         result["score"] = None
 
-    # 🔥 FIX 2: Smarter issue detection
+    # Issue detection
     issues = []
 
     if "late payment" in text_lower:
-        issues.append("Late payments found")
+        issues.append("Late payments")
 
     if "utilization" in text_lower or "%" in text:
-        issues.append("High credit utilization")
+        issues.append("High utilization")
 
     loan_count = len(re.findall(r"loan", text_lower))
     if loan_count >= 2:
-        issues.append("Multiple loans detected")
+        issues.append("Multiple loans")
 
     result["issues"] = issues
 
@@ -51,7 +55,7 @@ def analyze_cibil(text):
 
 
 # -------------------------------
-# Advice (IMPROVED)
+# Rule-based advice
 # -------------------------------
 def generate_advice(data):
     advice = []
@@ -59,30 +63,23 @@ def generate_advice(data):
 
     if score:
         if score < 650:
-            advice.append("⚠️ Poor score: Immediate improvement needed")
+            advice.append("⚠️ Poor score")
         elif score < 700:
-            advice.append("⚠️ Average score: Needs improvement")
+            advice.append("⚠️ Needs improvement")
         elif score < 750:
-            advice.append("🙂 Good score but can improve")
+            advice.append("🙂 Good but can improve")
         else:
-            advice.append("🔥 Excellent credit score")
+            advice.append("🔥 Excellent score")
 
-    if "Late payments found" in data["issues"]:
-        advice.append("👉 Pay EMIs and credit bills on time")
-
-    if "High credit utilization" in data["issues"]:
-        advice.append("👉 Keep credit usage below 30%")
-
-    if "Multiple loans detected" in data["issues"]:
-        advice.append("👉 Avoid taking multiple loans")
-
-    advice.append("👉 Monitor your credit score regularly")
+    advice.append("👉 Pay EMIs on time")
+    advice.append("👉 Keep usage below 30%")
+    advice.append("👉 Avoid multiple loans")
 
     return advice
 
 
 # -------------------------------
-# AI Advice (optional)
+# AI advice (optional)
 # -------------------------------
 def get_ai_advice(text):
     try:
@@ -104,24 +101,62 @@ def get_ai_advice(text):
 # -------------------------------
 # UI
 # -------------------------------
-st.set_page_config(page_title="CIBIL Analyzer", page_icon="💳")
+st.set_page_config(page_title="AI CIBIL Analyzer", page_icon="💳")
 
-st.title("💳 CIBIL Score Analyzer")
-st.write("Upload your CIBIL report PDF and get insights instantly")
+st.title("💳 AI CIBIL Analyzer")
+st.markdown("### Upload your credit report and get instant insights")
+st.markdown("---")
 
-uploaded_file = st.file_uploader("Upload PDF", type="pdf")
+uploaded_file = st.file_uploader("📂 Upload CIBIL PDF", type="pdf")
 
 if uploaded_file:
     st.success("File uploaded successfully")
 
-    if st.button("Analyze"):
+    if st.button("🔍 Analyze Report"):
         text = extract_text(uploaded_file)
         data = analyze_cibil(text)
 
-        st.subheader("📊 Analysis")
-        st.write("**Credit Score:**", data["score"])
-        st.write("**Issues:**", data["issues"] if data["issues"] else "No major issues")
+        # -------------------------------
+        # SUMMARY
+        # -------------------------------
+        st.subheader("📊 Credit Summary")
 
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric("Credit Score", data["score"] if data["score"] else "N/A")
+
+        with col2:
+            st.metric("Issues Found", len(data["issues"]))
+
+        # -------------------------------
+        # SCORE METER
+        # -------------------------------
+        if data["score"]:
+            st.progress(data["score"] / 900)
+
+            if data["score"] < 650:
+                st.error("Poor Credit Score")
+            elif data["score"] < 700:
+                st.warning("Average Score")
+            else:
+                st.success("Good Credit Score")
+
+        # -------------------------------
+        # ISSUE CHART
+        # -------------------------------
+        if data["issues"]:
+            df = pd.DataFrame({
+                "Issue": data["issues"],
+                "Count": [1] * len(data["issues"])
+            })
+
+            st.subheader("📊 Issue Breakdown")
+            st.bar_chart(df.set_index("Issue"))
+
+        # -------------------------------
+        # AI / FALLBACK
+        # -------------------------------
         ai = get_ai_advice(text)
 
         if ai:
