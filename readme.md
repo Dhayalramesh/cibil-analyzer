@@ -33,7 +33,7 @@ An AI-powered web application that analyzes CIBIL credit reports and provides fi
 
 ## 🔗 Live Demo
 
-(Add your Streamlit link here)
+(https://cibil-analyzer-kf8rdk8s6nkvjm88ta98ep.streamlit.app/)
 
 ---
 
